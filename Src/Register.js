@@ -16,37 +16,37 @@ const Register=({navigation})=>{
           }
         });
       };
-       
- 
-      const handleerror=()=>{
-        
-      }
  
       const handleRegister = async () => {
-        if(input.email=='' || input.mobileno=='' || input.password==''){
-          Alert.alert('all fields required')
-        }else{
-        try {
-          // Check if data already exists
-          const existingData = await AsyncStorage.getItem('userData');
-          if (existingData) {
-            // Data exists, parse and check for conflicts
-            const parsedData = JSON.parse(existingData);
-            if (parsedData.email === input.email) {
-              // Email already exists, show an alert
-              Alert.alert('Error', 'User with this email already exists.');
-              return;
+        if (input.email === '' || input.mobileno === '' || input.password === '') {
+          Alert.alert('All fields required');
+        } else {
+          try {
+            const existingData = await AsyncStorage.getItem('userData');
+            let userData = [];
+      
+            if (existingData) {
+              userData = JSON.parse(existingData);
+              if (!Array.isArray(userData)) {
+                userData = [];
+              }
+              const isEmailExists = userData.some(user => user.email === input.email);
+              if (isEmailExists) {
+                Alert.alert('Error', 'User with this email already exists.');
+                return;
+              }
             }
+            userData.push(input);
+            await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      
+            Alert.alert('Success', 'User registered successfully!');
+          } catch (error) {
+            console.error('Error:', error);
           }
-    
-          // Data doesn't exist or no conflicts, store the data
-          await AsyncStorage.setItem('userData', JSON.stringify(input));
-          Alert.alert('Success', 'User registered successfully!');
-        } catch (error) {
-          console.error('Error:', error);
         }
       };
-    }
+      
+      
     return(
         <View style={styles.container}>
       <Text style={styles.headtext}>Register</Text>
@@ -60,7 +60,7 @@ const Register=({navigation})=>{
       onChangeText={(text)=>handleonchange(text,'email')}
      />
       <TextInput style={styles.textinput} placeholder="password"
-      onChangeText={(text)=>handleonchange(text,'password')}/>
+      onChangeText={(text)=>handleonchange(text,'password')} secureTextEntry={true}/>
       </View>
       <TouchableOpacity style={styles.button}>
             <Text style={styles.buttontext}onPress={()=>handleRegister()}>Register</Text>
