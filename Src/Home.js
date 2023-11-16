@@ -1,22 +1,31 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
-import { View,StyleSheet,Text,TouchableOpacity } from "react-native";
-
+import React, { useEffect, useState} from "react";
+import { View,StyleSheet,Text,TouchableOpacity} from "react-native";
+import { useNavigation} from "@react-navigation/native";
 
 const Home=({route})=>{
-    const email=route.params;
     const [userdetail,setuserdetail]=useState(false)
     const [userdata,setuserdata]=useState()
+    const navigation=useNavigation();
+    const {email}=route.params;
     useEffect(()=>{
-        fetchuserdata()
-    })
-    const fetchuserdata= async()=>{
+        console.log('the email id',email)
+     fetchuserdata()
+    },[email])
+    const handleLogout = () => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      };
+    const fetchuserdata=async()=>{
         try{
             const existingdata=await AsyncStorage.getItem('userData');
             if(existingdata){
-                const parsedata=JSON.parse(existingdata);
-                if(parsedata.email===email){
-                  setuserdata(parsedata)
+                const userdatas=JSON.parse(existingdata);
+                const user = userdatas.find(u => u.email === email);
+                if(user.email===email){
+                  setuserdata(user)
                 }
             }
         }catch(error){
@@ -26,8 +35,8 @@ const Home=({route})=>{
     return(
         <View style={styles.container}>
          <Text style={styles.subtext}>Welcome to the Home page</Text>
-         <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttontext}onPress={()=>setuserdetail(true)}>user Details</Text>
+         <TouchableOpacity style={styles.button}onPress={()=>{setuserdetail(true)}}>
+            <Text style={styles.buttontext}>user Details</Text>
          </TouchableOpacity>
          {userdetail===true &&(
          <View style={styles.usercontainer}>
@@ -37,13 +46,13 @@ const Home=({route})=>{
             <Text style={styles.userdatatext}>Email id: {userdata.email}</Text>
             <Text style={styles.userdatatext}>phone number: {userdata.mobileno}</Text>
             </View>
-            <TouchableOpacity onPress={()=>setuserdetail(false)} style={styles.buttonclose}>
+            <TouchableOpacity onPress={()=>{setuserdetail(false),fetchuserdata()}} style={styles.buttonclose}>
                 <Text style={styles.buttontext}>close</Text>
             </TouchableOpacity>
          </View>
          )
          }
-         <TouchableOpacity style={styles.button1}>
+         <TouchableOpacity style={styles.button1}onPress={()=>{navigation.navigate('Login'),handleLogout()}}>
             <Text style={styles.buttontext}>Logout</Text>
          </TouchableOpacity>
         </View>
