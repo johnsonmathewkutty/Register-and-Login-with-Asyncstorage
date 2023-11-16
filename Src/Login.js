@@ -1,31 +1,37 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import { View,StyleSheet,Image,Text,TextInput,TouchableOpacity, Alert} from "react-native";
 
-const Login=({navigation})=>{
-    const [email,setemail]=useState()
-    const [password,setpassword]=useState()
-
+const Login=()=>{
+    const [email,setemail]=useState('')
+    const [password,setpassword]=useState('')
+const navigation=useNavigation()
     const handleuserlogin= async()=>{
      if(email=='' || password==''){
         Alert.alert('this fields are required')
      }
      else{
-        try{
-            const existingdata=await AsyncStorage.getItem('userData');
-            if(existingdata){
-                const parsedata=JSON.parse(existingdata);
-                if(parsedata.email===email && parsedata.password=== password){
-                    navigation.navigate('Home',email)
-                }else{
-                    Alert.alert('user not found')
-                }
+        try {
+            const existingData = await AsyncStorage.getItem('userData');
+            if (existingData) {
+              const userData = JSON.parse(existingData);
+              const user = userData.find(u => u.email === email);
+              if (user && user.password === password) {
+                navigation.navigate('Home',{email:email})
+                Alert.alert('Success', 'Login successful!');
+              } else {
+                Alert.alert('Error', 'Invalid email or password');
+              }
+            } else {
+              Alert.alert('Error', 'No user found. Please register.');
             }
-        }catch(error){
-            console.log('error',Error)
+          } catch (error) {
+            console.error('Error:', error);
+          }
         }
-     }
     }
+      
     return(
         <View style={styles.container}>
          <View style={styles.imagecontainer}>
@@ -36,7 +42,7 @@ const Login=({navigation})=>{
          <TextInput style={styles.textinput} placeholder="Email id"
          onChangeText={(text)=>setemail(text)}/>
          <TextInput style={styles.textinput} placeholder="Password"
-         onChangeText={(text)=>setpassword(text)}/>
+         onChangeText={(text)=>setpassword(text)} secureTextEntry={true}/>
          </View>
          <TouchableOpacity style={styles.button} onPress={()=>handleuserlogin()}>
             <Text style={styles.buttontext}>Login</Text>
